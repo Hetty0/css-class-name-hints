@@ -51,8 +51,14 @@ export function activate(context: vscode.ExtensionContext) {
         // 类名提示项
         provideCompletionItems(
           document: vscode.TextDocument,
+          /**
+           * position 参数提供了光标在文档中的确切位置
+           * position.line 表示光标所在的行
+           * position.character 表示光标在行内的位置
+           */
           position: vscode.Position
         ) {
+          // 获取光标所在行的文本，并提取从行首到光标位置的文本
           const linePrefix = document
             .lineAt(position)
             .text.substring(0, position.character);
@@ -65,11 +71,13 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           const classList = match[2]; // 获取类名列表
+          console.log(`Class list: ${classList}`);
           const lastClass = classList.split(" ").pop(); // 获取最后一个类名前缀
 
           const completionItems = classNames
             .filter((className) => className.startsWith(lastClass || ""))
             .map((className) => {
+              // 生成提示项
               const item = new vscode.CompletionItem(
                 className,
                 vscode.CompletionItemKind.Variable
