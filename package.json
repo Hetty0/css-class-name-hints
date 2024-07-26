@@ -1,21 +1,69 @@
 {
   "name": "css-class-name-hints",
   "displayName": "CSS Class Name Hints",
-  "description": "",
+  "description": "Provides suggestions for CSS class names from a predefined CSS file.",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.91.0"
+    "vscode": "^1.60.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "css-class-name-hints.helloWorld",
         "title": "Hello World"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "CSS Class Name Hints",
+      "properties": {
+        "cssClassNameHints.cssFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the CSS file containing class names for suggestions."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "html",
+        "extensions": [
+          ".html"
+        ],
+        "aliases": [
+          "HTML",
+          "htm",
+          "html"
+        ]
+      },
+      {
+        "id": "typescriptreact",
+        "extensions": [
+          ".tsx"
+        ],
+        "aliases": [
+          "TypeScript React",
+          "tsx"
+        ]
+      },
+      {
+        "id": "javascriptreact",
+        "extensions": [
+          ".jsx"
+        ],
+        "aliases": [
+          "JavaScript React",
+          "jsx"
+        ]
       }
     ]
   },

@@ -1,32 +1,111 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+let classNames: string[] = [];
+
 export function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log(
-    'Congratulations, your extension "css-class-name-hints" is now active!'
-  );
+  vscode.window.showInformationMessage("CSS Class Name Hints activated.");
 
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
-  const disposable = vscode.commands.registerCommand(
-    "css-class-name-hints.helloWorld",
-    () => {
-      // The code you place here will be executed every time your command is executed
-      // Display a message box to the user
-      vscode.window.showInformationMessage(
-        "Hello World from CSS Class Name Hints!"
-      );
+  const config = vscode.workspace.getConfiguration("cssClassNameHints");
+  const cssFilePath = config.get<string>("cssFilePath") || "";
+
+  if (cssFilePath) {
+    const cssFullPath = path.resolve(
+      vscode.workspace.rootPath || "",
+      cssFilePath
+    );
+    vscode.window.showInformationMessage(
+      `Loading CSS file from ${cssFullPath}`
+    );
+    loadClassNames(cssFullPath);
+  } else {
+    vscode.window.showErrorMessage("CSS file path is not configured.");
+  }
+
+  vscode.workspace.onDidChangeConfiguration((event) => {
+    if (event.affectsConfiguration("cssClassNameHints.cssFilePath")) {
+      const config = vscode.workspace.getConfiguration("cssClassNameHints");
+      const cssFilePath = config.get<string>("cssFilePath") || "";
+      if (cssFilePath) {
+        const cssFullPath = path.resolve(
+          vscode.workspace.rootPath || "",
+          cssFilePath
+        );
+        vscode.window.showInformationMessage(
+          `Reloading CSS file from ${cssFullPath}`
+        );
+        loadClassNames(cssFullPath);
+      }
     }
-  );
+  });
 
-  context.subscriptions.push(disposable);
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      ["html", "typescriptreact", "javascriptreact"],
+      {
+        provideCompletionItems(
+          document: vscode.TextDocument,
+          position: vscode.Position
+        ) {
+          const linePrefix = document
+            .lineAt(position)
+            .text.substring(0, position.character);
+          console.log(`Line prefix: ${linePrefix}`);
+
+          const classAttributeRegex = /(class|className)="([^"]*)$/;
+          const match = linePrefix.match(classAttributeRegex);
+          if (!match) {
+            return undefined;
+          }
+
+          const classList = match[2]; // 获取类名列表
+          const lastClass = classList.split(" ").pop(); // 获取最后一个类名前缀
+
+          const completionItems = classNames
+            .filter((className) => className.startsWith(lastClass || ""))
+            .map((className) => {
+              const item = new vscode.CompletionItem(
+                className,
+                vscode.CompletionItemKind.Variable
+              );
+              item.detail = "CSS Class Name";
+              return item;
+            });
+
+          return completionItems;
+        },
+      },
+      " ",
+      '"',
+      "." // Trigger completion after typing space, double quotes, or dot
+    )
+  );
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+function loadClassNames(cssFilePath: string) {
+  fs.readFile(cssFilePath, "utf-8", (err, data) => {
+    if (err) {
+      vscode.window.showErrorMessage(`Could not read CSS file: ${err.message}`);
+      return;
+    }
+    classNames = extractClassNames(data);
+    vscode.window.showInformationMessage(
+      `Loaded ${classNames.length} class names.`
+    );
+    console.log(`Loaded class names: ${classNames}`);
+  });
+}
+
+function extractClassNames(cssContent: string): string[] {
+  const regex = /\.([a-zA-Z0-9-_]+)/g;
+  const matches = cssContent.match(regex);
+  if (matches) {
+    return matches.map((match) => match.slice(1));
+  }
+  return [];
+}
+
+export function deactivate() {
+  vscode.window.showInformationMessage("CSS Class Name Hints deactivated.");
+}
