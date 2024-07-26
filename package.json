@@ -16,12 +16,6 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "css-class-name-hints.helloWorld",
-        "title": "Hello World"
-      }
-    ],
     "configuration": {
       "type": "object",
       "title": "CSS Class Name Hints",

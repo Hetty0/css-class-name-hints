@@ -90,9 +90,9 @@ function loadClassNames(cssFilePath: string) {
       return;
     }
     classNames = extractClassNames(data);
-    vscode.window.showInformationMessage(
-      `Loaded ${classNames.length} class names.`
-    );
+    // vscode.window.showInformationMessage(
+    //   `Loaded ${classNames.length} class names.`
+    // );
     console.log(`Loaded class names: ${classNames}`);
   });
 }
